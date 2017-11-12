@@ -35,5 +35,4 @@ Note: The running project also includes two JSON API endpoints that can be acces
 1. JSON for a specific item -- http://localhost:8000/catalog/{category_name}/{item_name}.json
 2. JSON for all items in catalog -- http://localhost:8000/items.json
 
-References
-https://www.udacity.com/course/full-stack-web-developer-nanodegree--nd004
+See also: https://www.udacity.com/course/full-stack-web-developer-nanodegree--nd004
