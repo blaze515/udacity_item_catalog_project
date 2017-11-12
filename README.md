@@ -1,10 +1,10 @@
 # Udacity Item Catalog Project
 
 This project is an item catalog. After the database has been setup and populated, the default catalog has a categories for Books, Shoes, and Music. The app allows users who are not signed in to see the catalog, browse categories, and view individual items. Users who are signed in, can add categories, add items, edit items, and delete items. Sign in uses OAuth2 authentication from Google. The application uses the following technologies:
-    -[Flask](http://flask.pocoo.org/)
-    -[SQLAlchemy](http://flask-sqlalchemy.pocoo.org/2.3/)
-    -[Google OAuth2](https://developers.google.com/identity/protocols/OAuth2)
-    -[Vagrant](https://www.vagrantup.com/docs/virtualbox/)
+    * [Flask](http://flask.pocoo.org/)
+    * [SQLAlchemy](http://flask-sqlalchemy.pocoo.org/2.3/)
+    * [Google OAuth2](https://developers.google.com/identity/protocols/OAuth2)
+    * [Vagrant](https://www.vagrantup.com/docs/virtualbox/)
 
 Prerequisites
 1. Vagrant/Virtualbox
@@ -20,10 +20,10 @@ Setting Up the Project
 
 1. Clone or download the repository into the vagrant shared directory.
 2. In a conseole, type the following commands:
-  - vagrant up
-  - vagrant ssh
+  * vagrant up
+  * vagrant ssh
 3. Once vagrant is up, type the following command:
-  - cd /vagrant/catalog
+  * cd /vagrant/catalog
 4. Run python3 database_setup.py to create the catalog database.
 5. Run python3 catalog_items.py to create the initial categories and items.
 6. Run python3 project.py to run the program.
