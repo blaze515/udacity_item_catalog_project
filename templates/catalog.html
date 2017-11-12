@@ -1,0 +1,68 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+<div class="row banner main">
+    <div class="col-md-1"></div>
+    <div class="col-md-11 padding-none">
+        <h1>Latest Items</h1>
+    </div>
+</div>
+
+<div class='flash'>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+
+    <ul>
+        {% for message in messages %}
+        <li><strong> {{ message }} </strong></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
+</div>
+
+<div class="row padding-top padding-bottom">
+    <div class="col-md-8">
+        {% if recent_items != [] %}
+        {% for i in recent_items %}
+        <div class="restaurant-list">
+            <h3>
+                <a href="{{url_for('show_item_description', category=i.category_name, item_name=i.name)}}">{{i.name}}
+                    ({{i.category_name}})</a>
+            </h3>
+        </div>
+        {% endfor %}
+        {% endif %}
+        <br>
+        <div>
+            <a href="{{url_for('new_item')}}">
+                <button class="btn btn-default" id="new-item">
+                <span class="glyphicon glyphicon-plus-sign"
+                      aria-hidden="true"></span>Add Item to Catalog
+                </button>
+            </a>
+        </div>
+
+    </div>
+    <div class="col-md-4">
+        <div><h2>Available Categories</h2></div>
+        {% if categories !=[]%}
+        {% for cat in categories %}
+        <div>
+            <h2><a href="{{url_for('show_catalog_items', category=cat.name)}}">{{cat.name}}</a>
+            </h2>
+        </div>
+        {% endfor %}
+        {% endif %}
+        <div>
+            <a href="{{url_for('new_category')}}">
+                <button class="btn btn-default" id="new-category">
+                <span class="glyphicon glyphicon-plus-sign"
+                      aria-hidden="true"></span>Add Category
+                </button>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

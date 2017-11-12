@@ -1,0 +1,22 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+<h2> Are you sure you want to delete {{item.name}}? </h2>
+
+<div>
+    <form action="{{url_for('delete_item', item_name=item.name)}}"
+          method='post'>
+
+        <button type="submit" class="btn btn-default delete" id="submit">
+            <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>Delete
+        </button>
+
+        <a class="btn btn-default delete" href="{{url_for('show_item_description', category=item.category_name, item_name=item.name)}}">
+            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+            Cancel
+        </a>
+    </form>
+
+</div>
+
+{% endblock %}
