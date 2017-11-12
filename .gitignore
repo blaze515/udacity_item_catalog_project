@@ -2,6 +2,7 @@
 ### Vagrant template
 # General
 .vagrant/
+.vagrant/machines/default/virtualbox
 
 # Log files (if you are creating logs in debug mode, uncomment this)
 # *.logs
@@ -112,5 +113,4 @@ venv.bak/
 .mypy_cache/
 
 catalog.db
-Vagrantfile
 
