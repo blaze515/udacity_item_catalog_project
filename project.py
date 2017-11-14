@@ -31,6 +31,7 @@ session = DBSession()
 # Create anti-forgery state token
 @app.route('/login')
 def show_login():
+    """ Method to display the login page to a user"""
     state = ''.join(
         random.choice(string.ascii_uppercase + string.digits) for x in
         range(32))
@@ -41,6 +42,7 @@ def show_login():
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
+    """ Method to log a user in through Google OAuth2"""
     # Validate state token
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
@@ -137,6 +139,7 @@ def gconnect():
 
 # User Helper Functions
 def create_user(login_session):
+    """ A helper function to create a new user"""
     new_user = User(name=login_session['username'],
                     email=login_session[
                         'email'], picture=login_session['picture'])
@@ -148,11 +151,13 @@ def create_user(login_session):
 
 
 def get_user_info(user_id):
+    """ A helper method to return a user object for getting user info"""
     user = session.query(User).filter_by(id=user_id).one()
     return user
 
 
 def get_user_id(email):
+    """ A helper method to get a user id from the user's email"""
     try:
         user = session.query(User).filter_by(email=email).one()
         return user.id
@@ -162,6 +167,8 @@ def get_user_id(email):
 
 
 def get_user_by_item_id(item_id):
+    """ A helper method to get the user who created an item by using the
+    catalog item's ID"""
     item = session.query(CatalogItem).filter_by(id=item_id).one()
     user = session.query(User).filter_by(id=item.user.id).one()
     return user
@@ -169,6 +176,7 @@ def get_user_by_item_id(item_id):
 
 @app.route('/logout')
 def logout():
+    """ A method to log a user out and clear the login session"""
     if 'username' in login_session:
         response = gdisconnect()
         if response is not None:
@@ -176,12 +184,14 @@ def logout():
             flash("Successfully disconnected")
         return redirect(url_for("show_catalog"))
     else:
+        # No user is logged in, so redirect to home page
         return redirect(url_for('show_catalog'))
 
 
 # DISCONNECT - Revoke a current user's token and reset their login_session
 @app.route('/gdisconnect')
 def gdisconnect():
+    """ A method to disconnect a user logged in through Google OAuth2"""
     # Only disconnect a connected user.
     access_token = login_session.get('access_token')
     if access_token is None:
@@ -189,7 +199,8 @@ def gdisconnect():
             json.dumps('Current user not connected.'), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
-    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token
+    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % \
+          access_token
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
     if result['status'] == '200':
@@ -203,7 +214,8 @@ def gdisconnect():
 
         login_session.clear()
 
-        response = make_response(json.dumps('Successfully disconnected.'), 200)
+        response = make_response(json.dumps('Successfully disconnected.'),
+                                 200)
         response.headers['Content-Type'] = 'application/json'
         return response
     else:
@@ -217,6 +229,7 @@ def gdisconnect():
 @app.route("/")
 @app.route("/catalog")
 def show_catalog():
+    """ A method to display the main catalog page or home page"""
     categories = session.query(Category).all()
     recent_items = session.query(CatalogItem).order_by(
         CatalogItem.id.desc()).limit(5).all()
@@ -226,6 +239,7 @@ def show_catalog():
 
 @app.route("/catalog/<string:category>/items")
 def show_catalog_items(category):
+    """ A method to display the items in a specific catalog category """
     categories = session.query(Category).all()
     current_category = session.query(Category).filter_by(name=category).one()
     catalog_items = session.query(CatalogItem).filter_by(
@@ -236,6 +250,7 @@ def show_catalog_items(category):
 
 @app.route("/catalog/<string:category>/<string:item_name>")
 def show_item_description(category, item_name):
+    """ A method to display information about a specific catalog item """
     current_category = session.query(Category).filter_by(name=category).one()
     catalog_item = session.query(CatalogItem).filter_by(name=item_name).one()
     return render_template('item_description.html', category=current_category,
@@ -244,20 +259,25 @@ def show_item_description(category, item_name):
 
 @app.route("/catalog/<string:category>/<string:item_name>.json")
 def show_item_json(category, item_name):
+    """ A JSON endpoint to display information about a specific catalog
+    item """
     catalog_item = session.query(CatalogItem).filter_by(name=item_name).one()
     return jsonify(item=catalog_item.serialize)
 
 
 @app.route("/catalog/items.json")
 def show_all_items_json():
+    """ A JSON endpoint to display information about all catalog items"""
     items = session.query(CatalogItem).all()
     return jsonify(items=[i.serialize for i in items])
 
 
 @app.route("/catalog/new_category/", methods=['GET', 'POST'])
 def new_category():
+    """ A method to create a new category, if the user is logged in"""
     if 'username' in login_session:
         if request.method == 'POST':
+            # Add the category to the db and redirect to new category page
             category_name = request.form['category']
             add_category = Category(user_id=login_session['user_id'],
                                     name=category_name)
@@ -266,19 +286,24 @@ def new_category():
             return redirect(
                 url_for('show_catalog_items', category=category_name))
         else:
+            # Display the page to create a new category
             return render_template('new_category.html')
     else:
+        # User isn't logged in, so redirect to home page
         flash("You need to be logged in to do that.")
         return redirect(url_for('show_catalog'))
 
 
 @app.route("/catalog/<string:item_name>/edit", methods=['GET', 'POST'])
 def edit_item(item_name):
+    """ A method to edit an item, if the user is logged in"""
     edited_item = session.query(CatalogItem).filter_by(name=item_name).one()
     if 'username' in login_session:
+        # Check to make sure only the creator can edit their item
         if login_session['user_id'] == get_user_by_item_id(
                 edited_item.id).id:
             if request.method == 'POST':
+                # Update db and redirect to current category's items page
                 category_name = request.form['category']
                 category = session.query(Category).filter_by(
                     name=category_name).one()
@@ -286,79 +311,95 @@ def edit_item(item_name):
                 edited_item.name = request.form['name']
                 edited_item.description = request.form['description']
                 session.commit()
-                # flash('Item edited successfully)
+                flash('Item edited successfully')
                 return redirect(
                     url_for('show_catalog_items', category=category.name))
             else:
+                # Display the page to make updates and pre-populate
                 categories = session.query(Category).all()
                 return render_template('edit_item.html', item=edited_item,
                                        categories=categories)
         else:
+            # Redirect user, since they didn't create the item
             flash("You can only edit items you created.")
             return redirect(
                 url_for('show_catalog_items',
                         category=edited_item.category_name))
     else:
+        # Redirect since the user isn't logged in
         flash("You need to be logged in to do that.")
         return redirect(url_for('show_catalog'))
 
 
 @app.route("/catalog/new", methods=['GET', 'POST'])
 def new_item():
+    """ A method to create a new catalog item. A user must be logged in to
+    be able to create an item."""
     if 'username' in login_session:
         if request.method == 'POST':
+            # Add item to db and redirect to current category's items page
             category_name = request.form['category']
             category = session.query(Category).filter_by(
                 name=category_name).one()
-            print("User ID: " + str(login_session['user_id']))
             user_id = login_session['user_id']
-            print("user_id: " + str(user_id))
             user = session.query(User).filter_by(
                 id=user_id).one()
-            print("ID of new User: " + str(user.id))
             item = CatalogItem(name=request.form['name'],
                                description=request.form['description'],
                                category=category,
                                user=user)
             session.add(item)
             session.commit()
-            # flash('New item successfully added to %s' % category.name)
+            flash('New item successfully added to %s' % category.name)
             return redirect(
                 url_for('show_catalog_items', category=category.name))
         else:
+            # Display the page to create a new item
             categories = session.query(Category).all()
             return render_template('new_item.html', categories=categories)
     else:
+        # Redirect to home page since the user isn't logged in
         flash("You need to be logged in to do that.")
         return redirect(url_for('show_catalog'))
 
 
 @app.route("/catalog/<string:item_name>/delete", methods=['GET', 'POST'])
 def delete_item(item_name):
-    item_to_delete = session.query(CatalogItem).filter_by(name=item_name).one()
+    """ Method to delete an item. Only the user who created the item can
+    delete it."""
+    item_to_delete = session.query(CatalogItem).filter_by(
+        name=item_name).one()
     if 'username' in login_session:
+        # Verify user is the item's creator, since user's can't delete other
+        # user's items.
         if login_session['user_id'] == get_user_by_item_id(
                 item_to_delete.id).id:
             if request.method == 'POST':
+                # Delete the item and redirect to the list of catalog items
                 previous_category = item_to_delete.category_name
                 session.delete(item_to_delete)
                 session.commit()
-                # flash('Item Successfully Deleted')
+                flash('Item Successfully Deleted')
                 return redirect(
                     url_for('show_catalog_items', category=previous_category))
             else:
-                return render_template('delete_item.html', item=item_to_delete)
+                # Display delete confirmation
+                return render_template('delete_item.html',
+                                       item=item_to_delete)
         else:
+            # Redirect since the user didn't create the item
             flash("You can only delete items you created.")
             return redirect(
                 url_for('show_catalog_items',
                         category=item_to_delete.category_name))
     else:
+        # Redirect since a user needs to be logged in to delete an item
         flash("You need to be logged in to do that.")
         return redirect(url_for('show_catalog'))
 
 
 if __name__ == '__main__':
+    """ Setting up app properties: secret_key, host, port, etc."""
     app.secret_key = 'super_secret_key'
     app.debug = True
     app.run(host='0.0.0.0', port=8000)

@@ -35,8 +35,8 @@ session.commit()
 book1 = CatalogItem(user_id=User1.id,
                     name="One Hundred Years of Solitude",
                     description='One Hundred Years of Solitude is a landmark '
-                                '1967 novel by Colombian author Gabriel Garcia'
-                                ' Marquez.',
+                                '1967 novel by Colombian author Gabriel '
+                                'Garcia Marquez.',
                     category=category1)
 
 session.add(book1)
