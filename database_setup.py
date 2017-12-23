@@ -61,6 +61,7 @@ class CatalogItem(Base):
         }
 
 
-engine = create_engine('postgresql://catalog@localhost/catalog')
+engine = create_engine('postgresql://catalog:catalog@localhost:5432/catalog')
+
 
 Base.metadata.create_all(engine)
